@@ -1,5 +1,8 @@
 #------------------- LIBRARY CONFIGURATION ------------------------------------
 
+
+option(ANTLR4_CPP_RUNTIME_STATIC "Build static library" ON)
+
 set(ANTLR4_CPP_RUNTIME antlr4_cpp_runtime CACHE INTERNAL "")
 set(ANTLR4_CPP_RUNTIME_SRC
     src/ANTLRErrorListener.cpp
@@ -309,21 +312,14 @@ set(ANTLR4_CPP_RUNTIME_SRC
     src/tree/xpath/XPathWildcardElement.h
 )
 
-add_library(${ANTLR4_CPP_RUNTIME} ${ANTLR4_CPP_RUNTIME_SRC})
+if(ANTLR4_CPP_RUNTIME_STATIC)
+    add_library(${ANTLR4_CPP_RUNTIME} STATIC ${ANTLR4_CPP_RUNTIME_SRC})
+    target_compile_definitions(${ANTLR4_CPP_RUNTIME} PUBLIC ANTLR4CPP_STATIC)
+    message("ANTLR4_CPP_RUNTIME_STATIC is set, so ${ANTLR4_CPP_RUNTIME} will be built as a static library")
+else()
+	add_library(${ANTLR4_CPP_RUNTIME} SHARED ${ANTLR4_CPP_RUNTIME_SRC})
+endif()
 
 target_include_directories(${ANTLR4_CPP_RUNTIME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")
-    target_compile_options(${ANTLR4_CPP_RUNTIME} PRIVATE
-        -g -Wall -O0
-    )
-else()
-    target_compile_options(${ANTLR4_CPP_RUNTIME} PRIVATE
-        -w -O3
-    )
-    target_compile_options(${ANTLR4_CPP_RUNTIME} PUBLIC
-        -Wno-attributes
-    )
-endif()
